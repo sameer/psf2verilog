@@ -132,8 +132,8 @@ impl PSF {
         let length = self.bitmap.len() as u32 / self.charsize;
         let input_width = (length as f64).log2().ceil() as u8;
         let output_width = self.charsize * 8;
-        println!("module charactermap ( input wire clk, input wire [{}:0] character, output reg [{}:0] characterraster );", input_width - 1, output_width - 1);
-        println!("always @(posedge clk) begin case (character)");
+        println!("module glyphmap ( input wire [{}:0] codepoint, output wire [{}:0] glyph );", input_width - 1, output_width - 1);
+        print!("assign glyph = ");
         for i in 0..length as usize {
             let mut s = String::with_capacity(output_width as usize);
             for j in 0..(self.charsize as usize) {
@@ -142,8 +142,11 @@ impl PSF {
                     self.bitmap[i * self.charsize as usize + j]
                 ));
             }
+            if i != 0 {
+                print!("    : ");
+            }
             println!(
-                "    {}'b{:0>input_width$b} : characterraster = {}'h{};",
+                "codepoint == {}'b{:0>input_width$b} ? {}'h{}",
                 input_width,
                 i,
                 output_width,
@@ -151,8 +154,7 @@ impl PSF {
                 input_width = input_width as usize
             );
         }
-        println!("    default : characterraster = 0;");
-        println!("endcase end");
+        println!("    : 0;");
         println!("endmodule");
     }
 }
